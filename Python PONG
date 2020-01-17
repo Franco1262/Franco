@@ -1,0 +1,129 @@
+import tkinter as tk
+import win32api as win
+import random
+import time
+
+class Pong(tk.Frame):
+	def __init__(self,root = None):
+		super().__init__(root)
+		self.direction = ("RIGHTDOWN","RIGHTUP","LEFTUP","LEFTDOWN")
+		self.root = root
+		self.root.title("Pong")
+		self.root.geometry("900x502+150+30")			
+		self.root.resizable(0,0)
+		self.create_screen()
+		self.move()			
+
+	def create_screen(self):
+		self.screen = tk.Canvas(self.root,width = 900,height = 500,bg="#212121")
+		self.screen.pack()		
+		y = 10		
+		for i in range(11):			
+			self.screen.create_rectangle(445,y,455,y+25,fill="white")
+			y+=45.5
+		self.screen.create_rectangle(880,220,890,280,fill="white",tag="right")
+		self.screen.create_rectangle(10,220,20,280,fill ="white",tag="left")
+
+		self.rpoint = 0
+		self.lpoint = 0
+		
+		self.screen.create_text(510,50,fill="white",text=self.rpoint,font=("Arial",50),tag ="rpoint")		
+		self.screen.create_text(390,50,fill="white",text=self.lpoint,font=("Arial",50),tag = "lpoint")
+
+		self.create_ball()
+
+	def create_ball(self):
+		self.screen.delete("ball")
+		self.y = random.choice(range(20,460,10))
+		self.screen.create_oval(440,self.y,460,self.y+20,fill="white",tag ="ball")
+		self.currentdirection = random.choice(self.direction)
+
+	def move(self):
+		
+		if self.currentdirection  == "RIGHTUP":
+			if self.screen.coords("ball")[3] != 20:
+				self.screen.move("ball",10,-10)
+			else:
+				self.currentdirection = "RIGHTDOWN"		
+			if self.screen.coords("ball")[0] == 870:
+				if self.screen.coords("ball")[3] > self.screen.coords("right")[1] and self.screen.coords("ball")[1] < self.screen.coords("right")[3]:
+					self.currentdirection = "LEFTUP"
+				else:
+					
+					self.lpoint+=1
+					self.screen.itemconfigure("lpoint",text = self.lpoint)
+					if self.lpoint == 10:
+						self.screen.move("lpoint",-18,0)
+					self.root.after(200,self.create_ball)		
+		
+		if self.currentdirection  == "RIGHTDOWN":
+			if self.screen.coords("ball")[1] != 480:
+				self.screen.move("ball",10,10)
+			else:
+				self.currentdirection = "RIGHTUP"
+				self.screen.move("ball",10,-10)
+			if self.screen.coords("ball")[0] == 870:
+				if self.screen.coords("ball")[3] > self.screen.coords("right")[1] and self.screen.coords("ball")[1] < self.screen.coords("right")[3]:
+					self.currentdirection = "LEFTDOWN"
+				else:					
+					self.lpoint+=1
+					self.screen.itemconfigure("lpoint",text = self.lpoint)
+					if self.lpoint == 10:
+						self.screen.move("lpoint",-18,0)
+					self.root.after(200,self.create_ball)
+		
+		if self.currentdirection  == "LEFTUP":
+			if self.screen.coords("ball")[3] != 20:
+				self.screen.move("ball",-10,-10)
+			else:
+				self.currentdirection = "LEFTDOWN"
+			if self.screen.coords("ball")[0] == 10:
+				if self.screen.coords("ball")[3] > self.screen.coords("left")[1] and self.screen.coords("ball")[1] < self.screen.coords("left")[3]:
+					self.currentdirection = "RIGHTUP"
+					self.screen.move("ball",10,-10)
+				else:
+					self.root.after(200,self.create_ball)			
+					self.rpoint+=1
+					self.screen.itemconfigure("rpoint",text = self.rpoint)		
+		
+		if self.currentdirection  == "LEFTDOWN":
+			if self.screen.coords("ball")[1] != 480:
+				self.screen.move("ball",-10,10)
+			else:
+				self.currentdirection = "LEFTUP"
+				self.screen.move("ball",-10,-10) 				
+			if self.screen.coords("ball")[0] == 10:			
+				if self.screen.coords("ball")[3] > self.screen.coords("left")[1] and self.screen.coords("ball")[1] < self.screen.coords("left")[3]:
+					self.currentdirection = "RIGHTDOWN"
+					self.screen.move("ball",10,10)
+				else:
+					self.root.after(200,self.create_ball)
+					self.rpoint+=1
+					self.screen.itemconfigure("rpoint",text = self.rpoint)
+				
+
+		if win.GetAsyncKeyState(0x26) != 0 and self.screen.coords("right")[3] != 60 :
+			self.screen.move("right",0,-20)
+		
+		if  win.GetAsyncKeyState(0x28) != 0 and self.screen.coords("right")[3] != 500:
+			self.screen.move("right",0,20)
+
+		if win.GetAsyncKeyState(0x57) != 0 and self.screen.coords("left")[3] != 60:
+			self.screen.move("left",0,-20)
+		
+		if  win.GetAsyncKeyState(0x53) != 0 and self.screen.coords("left")[3] != 500:
+			self.screen.move("left",0,20)
+		
+		if self.lpoint > 10 or self.rpoint > 10:
+			if self.lpoint >= 10:
+				self.screen.move("lpoint",18,0)			
+			self.lpoint = 0
+			self.rpoint = 0
+			self.screen.itemconfigure("rpoint",text = self.rpoint)
+			self.screen.itemconfigure("lpoint",text = self.lpoint)
+			
+		self.root.after(10,self.move)
+
+if __name__ == "__main__":
+	App = Pong(root = tk.Tk())
+	App.mainloop()
